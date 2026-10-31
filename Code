@@ -1,0 +1,255 @@
+
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Optional
+
+
+@dataclass
+class Documento:
+    nombre: str
+    es_carpeta: bool = False
+    tamano: int = 0
+    fecha_modificacion: datetime = field(default_factory=datetime.now)
+
+    def __str__(self):
+        tipo = "Carpeta" if self.es_carpeta else "Archivo"
+        return (f"{self.nombre} | {tipo} | {self.tamano} KB | "
+                f"{self.fecha_modificacion:%Y-%m-%d %H:%M}")
+
+
+class NodoBST:
+    def __init__(self, dato: Documento):
+        self.dato = dato
+        self.izq: Optional["NodoBST"] = None
+        self.der: Optional["NodoBST"] = None
+
+
+class ArbolBST:
+    def __init__(self):
+        self.raiz: Optional[NodoBST] = None
+
+    @staticmethod
+    def _clave(nombre: str) -> str:
+        return nombre.lower()
+
+    # ---------- CREATE ----------
+    def insertar(self, doc: Documento) -> bool:
+        if self.buscar(doc.nombre) is not None:
+            return False
+        self.raiz = self._insertar(self.raiz, doc)
+        return True
+
+    def _insertar(self, nodo, doc):
+        if nodo is None:
+            return NodoBST(doc)
+        if self._clave(doc.nombre) < self._clave(nodo.dato.nombre):
+            nodo.izq = self._insertar(nodo.izq, doc)
+        else:
+            nodo.der = self._insertar(nodo.der, doc)
+        return nodo
+
+    # ---------- READ ----------
+    def buscar(self, nombre: str) -> Optional[Documento]:
+        nodo = self.raiz
+        k = self._clave(nombre)
+        while nodo is not None:
+            kn = self._clave(nodo.dato.nombre)
+            if k == kn:
+                return nodo.dato
+            nodo = nodo.izq if k < kn else nodo.der
+        return None
+
+    # Cargar
+    def actualizar(self, nombre: str, nuevo_tamano: int) -> bool:
+        doc = self.buscar(nombre)
+        if doc is None:
+            return False
+        doc.tamano = nuevo_tamano
+        doc.fecha_modificacion = datetime.now()
+        return True
+
+    # eliminar 
+    def eliminar(self, nombre: str) -> bool:
+        if self.buscar(nombre) is None:
+            return False
+        self.raiz = self._eliminar(self.raiz, nombre)
+        return True
+
+    def _eliminar(self, nodo, nombre):
+        if nodo is None:
+            return None
+        k, kn = self._clave(nombre), self._clave(nodo.dato.nombre)
+        if k < kn:
+            nodo.izq = self._eliminar(nodo.izq, nombre)
+        elif k > kn:
+            nodo.der = self._eliminar(nodo.der, nombre)
+        else:
+            if nodo.izq is None:      # hoja o solo hijo derecho
+                return nodo.der
+            if nodo.der is None:      # solo hijo izquierdo
+                return nodo.izq
+            suc = self._minimo(nodo.der)   # dos hijos: sucesor inorden
+            nodo.dato = suc.dato
+            nodo.der = self._eliminar(nodo.der, suc.dato.nombre)
+        return nodo
+
+    @staticmethod
+    def _minimo(nodo):
+        while nodo.izq is not None:
+            nodo = nodo.izq
+        return nodo
+
+    # recorridos
+    def inorden(self):
+        res = []
+        def rec(n):
+            if n:
+                rec(n.izq); res.append(n.dato); rec(n.der)
+        rec(self.raiz)
+        return res
+
+    def preorden(self):
+        res = []
+        def rec(n):
+            if n:
+                res.append(n.dato); rec(n.izq); rec(n.der)
+        rec(self.raiz)
+        return res
+
+    def postorden(self):
+        res = []
+        def rec(n):
+            if n:
+                rec(n.izq); rec(n.der); res.append(n.dato)
+        rec(self.raiz)
+        return res
+
+    # metricas
+    def altura(self) -> int:
+        def rec(n):
+            return 0 if n is None else 1 + max(rec(n.izq), rec(n.der))
+        return rec(self.raiz)
+
+    def contar(self) -> int:
+        def rec(n):
+            return 0 if n is None else 1 + rec(n.izq) + rec(n.der)
+        return rec(self.raiz)
+
+    def menor(self) -> Optional[Documento]:
+        return self._minimo(self.raiz).dato if self.raiz else None
+
+    def mayor(self) -> Optional[Documento]:
+        n = self.raiz
+        while n and n.der:
+            n = n.der
+        return n.dato if n else None
+
+    #diagramas
+    def diagrama_ascii(self) -> str:
+        lineas = []
+        def dibujar(n, prefijo, es_ultimo):
+            if n is None:
+                return
+            dibujar(n.der, prefijo + ("    " if es_ultimo else "│   "), False)
+            lineas.append(prefijo + ("└── " if es_ultimo else "┌── ") + n.dato.nombre)
+            dibujar(n.izq, prefijo + ("    " if es_ultimo else "│   "), True)
+        dibujar(self.raiz, "", True)
+        return "\n".join(lineas) if lineas else "(árbol vacío)"
+
+
+# menu
+class ConsolaView:
+    def mostrar_menu(self) -> int:
+        print("\n===== DOCUTRACK =====")
+        print("1. Insertar documento")
+        print("2. Buscar documento")
+        print("3. Actualizar tamaño")
+        print("4. Eliminar documento")
+        print("5. Recorrido InOrden")
+        print("6. Recorrido PreOrden")
+        print("7. Recorrido PostOrden")
+        print("8. Mostrar diagrama ASCII")
+        print("9. Métricas (altura, nodos, menor, mayor)")
+        print("0. Salir")
+        try:
+            return int(input("Opción: "))
+        except ValueError:
+            return -1
+
+    def pedir_nombre(self) -> str:
+        return input("Nombre: ").strip()
+
+    def pedir_documento(self) -> Documento:
+        nombre = self.pedir_nombre()
+        es_carpeta = input("¿Es carpeta? (s/n): ").strip().lower() == "s"
+        tamano = 0 if es_carpeta else self.pedir_entero("Tamaño (KB): ")
+        return Documento(nombre, es_carpeta, tamano)
+
+    def pedir_entero(self, texto: str) -> int:
+        while True:
+            try:
+                return int(input(texto))
+            except ValueError:
+                print("Ingresa un número entero.")
+
+    def mensaje(self, texto: str):
+        print(texto)
+
+    def mostrar_documento(self, doc):
+        print(doc if doc else "No encontrado.")
+
+    def mostrar_lista(self, titulo: str, docs):
+        print(f"\n--- {titulo} ---")
+        if not docs:
+            print("(vacío)")
+        for d in docs:
+            print(d)
+
+    def mostrar_diagrama(self, texto: str):
+        print("\n" + texto)
+
+
+class DocumentoController:
+    def __init__(self):
+        self.arbol = ArbolBST()
+        self.vista = ConsolaView()
+
+    def cargar_ejemplo(self):
+        for nombre in ["M", "F", "T", "C", "H", "W"]:
+            self.arbol.insertar(Documento(nombre, False, 10))
+
+    def iniciar(self):
+        self.cargar_ejemplo()
+        op = -1
+        while op != 0:
+            op = self.vista.mostrar_menu()
+            if op == 1:
+                ok = self.arbol.insertar(self.vista.pedir_documento())
+                self.vista.mensaje("Insertado." if ok else "Ya existe.")
+            elif op == 2:
+                self.vista.mostrar_documento(self.arbol.buscar(self.vista.pedir_nombre()))
+            elif op == 3:
+                nombre = self.vista.pedir_nombre()
+                tam = self.vista.pedir_entero("Nuevo tamaño (KB): ")
+                ok = self.arbol.actualizar(nombre, tam)
+                self.vista.mensaje("Actualizado." if ok else "No encontrado.")
+            elif op == 4:
+                ok = self.arbol.eliminar(self.vista.pedir_nombre())
+                self.vista.mensaje("Eliminado." if ok else "No encontrado.")
+            elif op == 5:
+                self.vista.mostrar_lista("InOrden", self.arbol.inorden())
+            elif op == 6:
+                self.vista.mostrar_lista("PreOrden", self.arbol.preorden())
+            elif op == 7:
+                self.vista.mostrar_lista("PostOrden", self.arbol.postorden())
+            elif op == 8:
+                self.vista.mostrar_diagrama(self.arbol.diagrama_ascii())
+            elif op == 9:
+                self.vista.mensaje(
+                    f"Altura: {self.arbol.altura()} | Nodos: {self.arbol.contar()}\n"
+                    f"Menor: {self.arbol.menor()}\nMayor: {self.arbol.mayor()}")
+            elif op != 0:
+                self.vista.mensaje("Opción inválida.")
+
+if __name__ == "__main__":
+    DocumentoController().iniciar()
