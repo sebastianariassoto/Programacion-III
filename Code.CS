@@ -6,15 +6,7 @@ using TallerMVC.Controllers;
 using TallerMVC.Models;
 using TallerMVC.Views;
 
-// ============================================================================
-// TallerMVC - Taller Integrador BST (C#, arquitectura MVC)
-// Todo en un solo archivo, pero separado en 3 capas (namespaces):
-//   TallerMVC.Models      -> lógica del árbol (sin Console)
-//   TallerMVC.Views       -> entrada/salida por consola
-//   TallerMVC.Controllers -> conecta vista y modelo
-// ============================================================================
 
-// ---------------------------- MODELO: Documento ----------------------------
 namespace TallerMVC.Models
 {
     /// <summary>
@@ -44,7 +36,7 @@ namespace TallerMVC.Models
     }
 }
 
-// ---------------------------- MODELO: NodoBST ----------------------------
+// NodoBST 
 namespace TallerMVC.Models
 {
     /// <summary>Nodo del árbol: guarda un Documento y apunta a sus dos hijos.</summary>
@@ -63,7 +55,7 @@ namespace TallerMVC.Models
     }
 }
 
-// ---------------------------- MODELO: ArbolBST (CRUD, recorridos, métricas, diagrama) ----------------------------
+//  ArbolBST (CRUD, recorridos, métricas, diagrama) 
 namespace TallerMVC.Models
 {
     /// <summary>
@@ -77,9 +69,6 @@ namespace TallerMVC.Models
         private static int Comparar(string a, string b) =>
             string.Compare(a, b, StringComparison.OrdinalIgnoreCase);
 
-        // =====================================================================
-        // C - CREATE
-        // =====================================================================
         /// <summary>Inserta un documento. Devuelve false si el nombre ya existe.</summary>
         public bool Insertar(Documento doc)
         {
@@ -99,10 +88,10 @@ namespace TallerMVC.Models
             return nodo;
         }
 
-        // =====================================================================
-        // R - READ (búsquedas)
-        // =====================================================================
+        //(búsquedas)
+        // 
         /// <summary>Búsqueda iterativa por nombre. Devuelve null si no existe.</summary>
+
         public Documento Buscar(string nombre) => BuscarNodo(nombre)?.Dato;
 
         private NodoBST BuscarNodo(string nombre)
@@ -152,9 +141,7 @@ namespace TallerMVC.Models
             BuscarPorPrefijo(nodo.Der, prefijo, res);
         }
 
-        // =====================================================================
-        // U - UPDATE
-        // =====================================================================
+      
         /// <summary>Actualiza el tamaño y la fecha. La clave (nombre) no cambia,
         /// por eso el nodo NO se mueve de lugar en el árbol.</summary>
         public bool Actualizar(string nombre, long nuevoTamanoKb)
@@ -182,10 +169,7 @@ namespace TallerMVC.Models
             return Insertar(doc);
         }
 
-        // =====================================================================
-        // D - DELETE (3 casos)
-        // =====================================================================
-        /// <summary>
+        
         /// Elimina por nombre. 'caso' indica cuál de los 3 casos se aplicó:
         /// "Hoja", "Un hijo" o "Dos hijos (sucesor inorden)".
         /// </summary>
@@ -231,10 +215,9 @@ namespace TallerMVC.Models
             return nodo;
         }
 
-        // =====================================================================
-        // RECORRIDOS
-        // =====================================================================
+  
         /// <summary>Izquierda - Raíz - Derecha: sale ordenado alfabéticamente.</summary>
+
         public List<Documento> InOrden()
         {
             var lista = new List<Documento>();
@@ -299,12 +282,10 @@ namespace TallerMVC.Models
             return lista;
         }
 
-        // =====================================================================
-        // MÉTRICAS Y MÉTODOS AUXILIARES
-        // =====================================================================
         public bool EstaVacio => Raiz == null;
 
         /// <summary>Altura en niveles: árbol vacío = 0, solo raíz = 1.</summary>
+
         public int Altura() => Altura(Raiz);
         private int Altura(NodoBST n) => n == null ? 0 : 1 + Math.Max(Altura(n.Izq), Altura(n.Der));
 
@@ -380,7 +361,6 @@ namespace TallerMVC.Models
     }
 }
 
-// ---------------------------- VISTA: ConsolaView ----------------------------
 namespace TallerMVC.Views
 {
     /// <summary>
@@ -494,7 +474,7 @@ namespace TallerMVC.Views
     }
 }
 
-// ---------------------------- CONTROLADOR: DocumentoController ----------------------------
+
 namespace TallerMVC.Controllers
 {
     /// <summary>
@@ -539,15 +519,7 @@ namespace TallerMVC.Controllers
             } while (opcion != 0);
         }
 
-        // ------------------------------------------------------------------
-        // Datos de ejemplo. Forma del árbol resultante:
-        //
-        //                 Proyectos          <- raíz (2 hijos)
-        //                /          \
-        //         Backups            Tareas  <- Tareas tiene 1 solo hijo
-        //         /     \                \
-        //     Anexos  Contratos          Videos   <- Anexos, Contratos y Videos son hojas
-        // ------------------------------------------------------------------
+  
         private void CargarEjemplo()
         {
             _arbol = new ArbolBST();
