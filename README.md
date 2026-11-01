@@ -3,9 +3,9 @@ proyecto de clases
 
 
 Integrantes: 
-Juan Camilo Toro
-Sebastián Arias Soto
-Genesis Rodriguez
+* **Sebastián Arias Soto** — *Desarrollador*
+* **Génesis Rodríguez** — *Algoritmos & Lógica*
+* **Juan Camilo Toro** — *Análisis & Pruebas*
 
 Proyecto de Programación: Árboles Binarios de Búsqueda (MVC)
 
