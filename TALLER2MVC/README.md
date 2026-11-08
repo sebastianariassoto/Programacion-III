@@ -3,9 +3,9 @@
 
 **Integrantes:**
 
-- Sebastián Arias Soto — Desarrollador
+- Sebastián Arias Soto — Análisis & Pruebas
 - Génesis Rodríguez — Algoritmos & Lógica
-- Juan Camilo Toro — Análisis & Pruebas
+- Juan Camilo Toro —  Desarrollador
 
 ---
 
